@@ -10,7 +10,7 @@ class MessageForm(forms.ModelForm):
     contact_num = forms.CharField(
         widget=forms.TextInput(attrs={
             'placeholder': 'Enter multiple numbers separated by commas',
-            'class': 'form-control'  # Add custom class for easier styling
+            'class': 'form-control' 
         }),
         label='Contact Numbers (separate by commas)'
     )
@@ -18,7 +18,7 @@ class MessageForm(forms.ModelForm):
         widget=forms.Textarea(attrs={
             'placeholder': 'Type your message...',
             'rows': 4,
-            'class': 'form-control'  # Add custom class for styling
+            'class': 'form-control' 
         }),
         label='Message'
     )

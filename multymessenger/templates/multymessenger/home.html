@@ -132,24 +132,6 @@
         <div class="header">
             MultyMessenger
         </div>
-    
-        <!-- Display messages -->
-        {% if messages %}
-            <ul class="messages" style="list-style: none; padding: 0; margin: 10px; text-align: center;">
-                {% for message in messages %}
-                    <li class="{% if message.tags %}{{ message.tags }}{% endif %}" 
-                        style="
-                            margin: 10px 0; 
-                            padding: 10px; 
-                            border-radius: 5px; 
-                            color: white;
-                            background-color: {% if message.tags == 'success' %}#28a745{% elif message.tags == 'error' %}#dc3545{% else %}#ffc107{% endif %};
-                        ">
-                        {{ message }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}    
         
         <!-- Message Form -->
         <form method="post" enctype="multipart/form-data" id="message-form">
@@ -163,6 +145,26 @@
             <button class="btnn" type="submit">Send</button>
         </form>
     </div>
+    
+    <!-- Display messages -->
+    {% if messages %}
+        <ul class="messages" style="list-style: none; padding: 0; margin: 10px; text-align: center;">
+            {% for message in messages %}
+                <li class="{% if message.tags %}{{ message.tags }}{% endif %}" 
+                    style="
+                        margin: 10px 0; 
+                        padding: 10px; 
+                        border-radius: 5px; 
+                        color: white;
+                        height:10vh;
+                        overflow-y:auto;
+                        background-color: {% if message.tags == 'success' %}#28a745{% elif message.tags == 'error' %}#dc3545{% else %}#ffc107{% endif %};
+                    ">
+                    {{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}    
 
     <div class="footer-note">
         Powered by MultyComm &copy; 2024
@@ -189,7 +191,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.contact_nums) {
-                    document.getElementById('contact_num').value = data.contact_nums.join(',');
+                    document.getElementById('id_contact_num').value = data.contact_nums.join(',');
                 } else {
                     alert('Failed to process file upload.');
                 }
@@ -199,4 +201,5 @@
     </script>
     
 </body>
+
 </html>

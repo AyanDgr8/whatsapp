@@ -68,10 +68,7 @@ def send_whatsapp_message(contact_nums, message):
 
 
 def home(request):
-    """
-    Render the home page, handle file uploads, and process the message form.
-    """
-    contact_nums_str = ""  # Pre-filled numbers from the uploaded file
+    contact_nums_str = ""  # Initialize the string for contact numbers
 
     if request.method == 'POST':
         if 'file-upload' in request.FILES:
@@ -116,7 +113,7 @@ def home(request):
 
                 return redirect('home')  # Clear the form after submission
     else:
-        form = MessageForm()
+        form = MessageForm(initial={'contact_num': contact_nums_str})  # Set initial value here
 
     excel_form = ExcelUploadForm()
 
@@ -125,7 +122,6 @@ def home(request):
         'excel_form': excel_form,
         'contact_nums_str': contact_nums_str
     })
-
 
 def file_upload_endpoint(request):
     """
@@ -137,14 +133,18 @@ def file_upload_endpoint(request):
         try:
             # Read the uploaded Excel file
             df = pd.read_excel(file)
+            print(df.head())
+
             # Extract phone numbers
             contact_nums = df['phone'].dropna().astype(str).tolist()
+            print(contact_nums)  
 
             # Ensure phone numbers have at most 15 characters
             contact_nums = [num[:15] for num in contact_nums]  # Truncate to 15 characters if longer
-
             return JsonResponse({'contact_nums': contact_nums})  # Return as JSON
+        
         except Exception as e:
+            print(f"Error processing file: {e}") 
             return JsonResponse({'error': f"Error processing file: {e}"}, status=400)
 
     return JsonResponse({'error': 'No file uploaded'}, status=400)
