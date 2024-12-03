@@ -1,0 +1,110 @@
+/* multymessenger/static/css/home.css */
+
+/* General Reset */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Monaco", monospace;
+    background-color: black;
+}
+
+/* Container styling */
+.container {
+    width: 50%;
+    margin: 7.5rem auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+/* Header styling */
+.header {
+    background-color: #364C63;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Form styling */
+form {
+    padding: 20px;
+}
+
+form p {
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 0.95rem;
+    color: #364C63;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+input[type="text"], textarea, input[type="file"] {
+    width: 90%;
+    padding: 10px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: auto;
+    margin-bottom: 10px;
+    outline: none;
+}
+
+input[type="text"]:focus, textarea:focus, input[type="file"]:focus {
+    border-color: #EF6F53;
+}
+
+/* Button styling */
+.btnn {
+    background-color: #EF6F53;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    width: 50%;
+    display: block;
+    margin: 15px auto 0;
+}
+
+.btnn:hover {
+    background-color: #dd3e1e;
+}
+
+/* Upload Button - top-right corner (Fixed Position) */
+.upload-btn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    background-color: #EF6F53;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    width:30%%;
+}
+
+.upload-btn:hover {
+    background-color: #dd3e1e;
+}
+
+/* Footer note */
+.footer-note {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.85rem;
+    color: white;
+}
