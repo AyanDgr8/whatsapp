@@ -1,4 +1,5 @@
 # multymessenger/models.py
+
 from django.db import models
 
 class MultyMessenger(models.Model):
@@ -21,13 +22,17 @@ class MultyMessenger(models.Model):
     # Automatically set the date when the message is sent
     date_sent = models.DateTimeField(auto_now_add=True)
 
+    # Indicates whether the message has been sent (yes/no)
+    message_sent = models.CharField(max_length=3, choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
+
+    # Indicates whether the contact number is valid (yes/no)
+    contact_num_valid = models.CharField(max_length=3, choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
+
     class Meta:
         db_table = 'messenger'  # Custom database table name
         indexes = [
             models.Index(fields=['unique_id']),  # Index for faster lookups
         ]
-        # Optional: Explicitly specify database charset if needed (in database migration)
-        # Example for MySQL: 'DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci'
 
     def __str__(self):
         return f"Message {self.id} from {self.contact_num} sent at {self.date_sent}"

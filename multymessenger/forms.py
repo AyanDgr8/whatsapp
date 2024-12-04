@@ -23,9 +23,31 @@ class MessageForm(forms.ModelForm):
         label='Message'
     )
 
+    f_name = forms.CharField(
+        widget=forms.HiddenInput(),  # Hidden field
+        required=False
+    )
+
+    l_name = forms.CharField(
+        widget=forms.HiddenInput(),  # Hidden field
+        required=False
+    )
+
+    message_sent = forms.ChoiceField(
+        choices=[('yes', 'Yes'), ('no', 'No')],
+        widget=forms.HiddenInput(), 
+        required=False
+    )
+
+    contact_num_valid = forms.ChoiceField(
+        choices=[('yes', 'Yes'), ('no', 'No')],
+        widget=forms.HiddenInput(), 
+        required=False
+    )
+
     class Meta:
         model = MultyMessenger
-        fields = ['contact_num', 'message']
+        fields = ['contact_num', 'message', 'f_name', 'l_name', 'message_sent', 'contact_num_valid']
 
     def clean_contact_num(self):
         """
@@ -57,3 +79,23 @@ class ExcelUploadForm(forms.Form):
             'class': 'form-control-file'  # Add custom class for styling
         })
     )
+
+    def save_contacts(self, uploaded_file):
+        """
+        This method should be called to process the uploaded Excel file and
+        save the contact details to the database.
+        """
+        import pandas as pd
+
+        # Assuming the uploaded file is an Excel file with columns: 'f_name', 'l_name', 'phone', 'message_sent', 'contact_num_valid'
+        df = pd.read_excel(uploaded_file)
+        
+        for _, row in df.iterrows():
+            # Create a MultyMessenger instance for each row in the Excel file
+            MultyMessenger.objects.create(
+                f_name=row.get('f_name', ''),
+                l_name=row.get('l_name', ''),
+                contact_num=row['phone'],
+                message_sent=row.get('message_sent', 'yes'),
+                contact_num_valid=row.get('contact_num_valid', 'yes')
+            )

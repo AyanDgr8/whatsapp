@@ -4,7 +4,7 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: "Monaco", monospace;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
     background-color: black;
 }
 
@@ -12,6 +12,7 @@ body {
 .container {
     width: 50%;
     margin: 7.5rem auto;
+    margin-bottom:3rem;
     background-color: white;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -72,7 +73,7 @@ input[type="text"]:focus, textarea:focus, input[type="file"]:focus {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    width: 50%;
+    width: 40%;
     display: block;
     margin: 15px auto 0;
 }
@@ -94,7 +95,7 @@ input[type="text"]:focus, textarea:focus, input[type="file"]:focus {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    width:30%%;
+    width:10%;
 }
 
 .upload-btn:hover {
@@ -107,4 +108,10 @@ input[type="text"]:focus, textarea:focus, input[type="file"]:focus {
     padding: 10px;
     font-size: 0.85rem;
     color: white;
+    margin-top:1rem;
+}
+.error {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 5px;
 }

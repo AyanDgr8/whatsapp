@@ -7,84 +7,12 @@ from .forms import MessageForm, ExcelUploadForm
 from .models import MultyMessenger
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-
-def send_whatsapp_message(contact_nums, message):
-    """
-    Automate sending WhatsApp messages using Selenium WebDriver.
-    """
-    # Configure Chrome options
-    chrome_options = Options()
-    chrome_options.add_argument("--start-maximized")  # Open in maximized mode
-    # chrome_options.add_argument("--headless")  # Uncomment for headless mode
-
-    # Use ChromeDriverManager to download and set up the driver
-    service = Service(ChromeDriverManager().install())
-
-    # Initialize the WebDriver with the service and options
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-
-    # Example usage: Open WhatsApp Web
-    driver.get("https://web.whatsapp.com")
-    print("Please scan the QR code to log in.")
-
-    print("Please scan the QR Code in the browser to log in to WhatsApp.")
-
-    try:
-        # Wait for QR code to be scanned and WhatsApp Web to load
-        WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="pane-side"]'))
-        )
-    except Exception as e:
-        driver.quit()
-        raise Exception(f"QR code login timeout or error: {str(e)}")
-
-    results = []
-    for contact_num in contact_nums:
-        try:
-            # Open chat with the given phone number
-            whatsapp_url = f"https://web.whatsapp.com/send?phone={contact_num}&text={message}"
-            driver.get(whatsapp_url)
-            time.sleep(5)  # Wait for the chat to load
-
-            # Handle invalid URL alerts if present
-            try:
-                WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, "//button[text()='OK']"))
-                )
-                ok_button = driver.find_element(By.XPATH, "//button[text()='OK']")
-                ok_button.click()
-                time.sleep(2)
-                results.append((contact_num, "Invalid URL, skipped"))
-                continue  # Skip to the next number
-            except Exception:
-                pass  # No alert, proceed normally
-
-            # Locate the message input box and send the message
-            input_box_xpath = '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p'
-            input_box = WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.XPATH, input_box_xpath))
-            )
-            input_box.send_keys(Keys.ENTER)  # Press Enter to send
-            time.sleep(2)  # Allow time for sending
-            results.append((contact_num, "Success"))
-        except Exception as e:
-            results.append((contact_num, f"Failed: {str(e)}"))
-
-    # Close the browser
-    driver.quit()
-    return results
-
+import pandas as pd
 
 def generate_unique_id():
     """
@@ -98,6 +26,75 @@ def generate_unique_id():
         except (IndexError, ValueError):
             return "MuM_100"  # Default ID if parsing fails
     return "MuM_100"  # Default ID if no records exist
+
+def open_whatsapp_in_new_tab(driver):
+    """
+    Open WhatsApp Web in a new browser tab using JavaScript.
+    """
+    driver.execute_script("window.open('https://web.whatsapp.com', '_blank');")
+    # Switching to the new tab
+    driver.switch_to.window(driver.window_handles[-1])
+    print("WhatsApp Web is now open in a new tab. Please scan the QR Code to log in.")
+
+def send_whatsapp_message(contact_nums, message):
+    """
+    Automate sending WhatsApp messages using an existing WebDriver.
+    """
+    # Set up Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")  # Start the browser maximized
+    chrome_options.add_argument("--disable-infobars")  # Disable the 'Chrome is being controlled' infobar
+    chrome_options.add_argument("--disable-extensions")  # Disable extensions
+    chrome_options.add_argument("--headless")  # Optionally run in headless mode (without GUI)
+
+    # Initialize the driver with ChromeDriverManager
+    service = Service(ChromeDriverManager().install())  # Automatically manage ChromeDriver
+    driver = webdriver.Chrome(service=service, options=chrome_options)  # Create the driver
+
+    # Open WhatsApp in a new tab
+    open_whatsapp_in_new_tab(driver)
+
+    # Wait for WhatsApp Web to load
+    time.sleep(10)  # Adjust this wait time if necessary
+
+    results = []
+    for contact_num in contact_nums:
+        try:
+            # Open chat with the given phone number
+            whatsapp_url = f"https://web.whatsapp.com/send?phone={contact_num}&text={message}"
+            driver.get(whatsapp_url)
+            time.sleep(5)  # Reduced wait time for the URL to load
+
+            # Check for the "Invalid URL" alert message
+            try:
+                # Wait for the alert to be present and handle it if found
+                WebDriverWait(driver, 2).until(EC.presence_of_element_located(
+                    (By.XPATH, "/html/body/div[1]/div/div/span[2]/div/span/div/div/div/div/div/div[2]/div/button")
+                ))
+                # Click the "OK" button to close the invalid URL alert
+                ok_button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/span[2]/div/span/div/div/div/div/div/div[2]/div/button")
+                ok_button.click()  # Close the alert
+                time.sleep(2)  # Reduced sleep time after handling the alert
+                results.append((contact_num, "Invalid URL, skipped"))
+                continue  # Continue with the next contact number
+
+            except Exception:
+                # No alert found, continue normally
+                pass
+
+            # Locate the input box and send the message
+            input_box_xpath = '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p'
+            input_box = WebDriverWait(driver, 4).until(
+                EC.visibility_of_element_located((By.XPATH, input_box_xpath))
+            )
+            input_box.send_keys(Keys.ENTER)  # Press Enter to send
+            time.sleep(2)  # Shorter sleep after sending
+            results.append((contact_num, "Success"))
+        except Exception as e:
+            results.append((contact_num, f"Failed: {str(e)}"))
+
+    driver.quit()
+    return results
 
 def home(request):
     contact_nums_str = ""  # Initialize the string for contact numbers
