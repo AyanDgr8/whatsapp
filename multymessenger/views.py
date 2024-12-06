@@ -10,81 +10,28 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.alert import Alert
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+import pandas as pd
 
-def send_whatsapp_message(contact_nums, message):
+
+
+def update_message_status(contact_num, status):
     """
-    Automate sending WhatsApp messages using Selenium WebDriver.
+    Update the message status and contact number validity in the database.
     """
-    # Configure Chrome options
-    chrome_options = Options()
-    chrome_options.add_argument("--start-maximized")  # Open in maximized mode
-    # chrome_options.add_argument("--headless")  # Uncomment for headless mode
-
-    # Use ChromeDriverManager to download and set up the driver
-    service = Service(ChromeDriverManager().install())
-
-    # Initialize the WebDriver with the service and options
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-
-    # Example usage: Open WhatsApp Web
-    driver.get("https://web.whatsapp.com")
-    print("Please scan the QR code to log in.")
-
-    print("Please scan the QR Code in the browser to log in to WhatsApp.")
-
     try:
-        # Wait for QR code to be scanned and WhatsApp Web to load
-        WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="pane-side"]'))
-        )
+        messenger_entry = MultyMessenger.objects.filter(contact_num=contact_num, message_status='pending').first()
+        if messenger_entry:
+            if status == "Success":
+                messenger_entry.message_status = "sent"
+                messenger_entry.contact_num_valid = "yes"
+            else:
+                messenger_entry.message_status = "failed"
+                messenger_entry.contact_num_valid = "no"
+            messenger_entry.save()
     except Exception as e:
-        driver.quit()
-        raise Exception(f"QR code login timeout or error: {str(e)}")
-
-    results = []
-    for contact_num in contact_nums:
-        try:
-            # Open chat with the given phone number
-            whatsapp_url = f"https://web.whatsapp.com/send?phone={contact_num}&text={message}"
-            driver.get(whatsapp_url)
-            time.sleep(5)  # Wait for the chat to load
-
-            # Handle invalid URL alerts if present
-            try:
-                WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, "//button[text()='OK']"))
-                )
-                ok_button = driver.find_element(By.XPATH, "//button[text()='OK']")
-                ok_button.click()
-                time.sleep(2)
-                results.append((contact_num, "Invalid URL, skipped"))
-                continue  # Skip to the next number
-            except Exception:
-                pass  # No alert, proceed normally
-
-            # Locate the message input box and send the message
-            input_box_xpath = '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p'
-            input_box = WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.XPATH, input_box_xpath))
-            )
-            input_box.send_keys(Keys.ENTER)  # Press Enter to send
-            time.sleep(2)  # Allow time for sending
-            results.append((contact_num, "Success"))
-        except Exception as e:
-            results.append((contact_num, f"Failed: {str(e)}"))
-
-    # Close the browser
-    driver.quit()
-    return results
-
+        print(f"Error updating status for {contact_num}: {e}")
 
 def generate_unique_id():
     """
@@ -98,6 +45,66 @@ def generate_unique_id():
         except (IndexError, ValueError):
             return "MuM_100"  # Default ID if parsing fails
     return "MuM_100"  # Default ID if no records exist
+
+def send_whatsapp_message(contact_nums, message):
+    """
+    Automate sending WhatsApp messages using Selenium WebDriver.
+    """
+    driver = webdriver.Chrome()  # Make sure to adjust the ChromeDriver path
+    driver.get("https://web.whatsapp.com")
+    print("Please scan the QR Code in the browser to log in to WhatsApp.")
+
+    try:
+        WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="pane-side"]'))
+        )
+    except Exception:
+        driver.quit()
+        raise Exception("QR code login timeout. Please try again.")
+
+    results = []
+    for contact_num in contact_nums:
+        try:
+            # Open chat with the given phone number
+            whatsapp_url = f"https://web.whatsapp.com/send?phone={contact_num}&text={message}"
+            driver.get(whatsapp_url)
+            time.sleep(5)  # Reduced wait time for the URL to load
+
+            # Check for the "Invalid URL" alert message
+            try:
+                # Wait for the alert to be present and handle it if found
+                WebDriverWait(driver, 2).until(EC.presence_of_element_located(
+                    (By.XPATH, "/html/body/div[1]/div/div/span[2]/div/span/div/div/div/div/div/div[2]/div/button")
+                ))
+                # Click the "OK" button to close the invalid URL alert
+                ok_button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/span[2]/div/span/div/div/div/div/div/div[2]/div/button")
+                ok_button.click()  # Close the alert
+                time.sleep(2)  # Reduced sleep time after handling the alert
+                results.append((contact_num, "Invalid URL, skipped"))
+                continue  # Continue with the next contact number
+
+            except Exception:
+                # No alert found, continue normally
+                pass
+
+            # Locate the input box and send the message
+            input_box_xpath = '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p'
+            input_box = WebDriverWait(driver, 4).until(
+                EC.visibility_of_element_located((By.XPATH, input_box_xpath))
+            )
+            input_box.send_keys(Keys.ENTER)  # Press Enter to send
+            time.sleep(2)  # Shorter sleep after sending
+            results.append((contact_num, "Success"))
+        except Exception as e:
+            results.append((contact_num, f"Failed: {str(e)}"))
+
+    driver.quit()
+
+    # Update message statuses
+    for contact_num, status in results:
+        update_message_status(contact_num, status)
+        
+    return results
 
 def home(request):
     contact_nums_str = ""  # Initialize the string for contact numbers
@@ -186,7 +193,6 @@ def home(request):
         'contact_nums_str': contact_nums_str
     })
 
-
 def file_upload_endpoint(request):
     """
     Handle the file upload and process the Excel file to extract phone numbers.
@@ -203,9 +209,8 @@ def file_upload_endpoint(request):
             contact_nums = df['phone'].dropna().astype(str).tolist()
             f_names = df['f_name'].dropna().astype(str).tolist()
             l_names = df['l_name'].dropna().astype(str).tolist()
-            message = message,
 
-            print(contact_nums, f_names, l_names, message)  # Debugging: Check extracted values
+            print(contact_nums, f_names, l_names)  # Debugging: Check extracted values
 
             # Ensure phone numbers have at most 15 characters
             contact_nums = [num[:15] for num in contact_nums]  # Truncate to 15 characters if longer
@@ -218,20 +223,19 @@ def file_upload_endpoint(request):
                 # Check if this contact number already exists in the database
                 if not MultyMessenger.objects.filter(contact_num=contact_num).exists():
                     # Debugging output before saving
-                    print(f"Saving: {contact_num}, {f_name}, {l_name} {message}")
+                    print(f"Saving: {contact_num}, {f_name}, {l_name}")
                     
                     # Create a new MultyMessenger instance
                     MultyMessenger.objects.create(
                         unique_id=generate_unique_id(),  # Ensure you have a function to generate unique IDs
                         contact_num=contact_num,
                         f_name=f_name,
-                        l_name=l_name,
-                        message=message
+                        l_name=l_name
                     )
                 else:
                     print(f"Duplicate entry found for contact number: {contact_num}")
 
-            return JsonResponse({'contact_nums': contact_nums, 'f_names': f_names, 'l_names': l_names, 'message': message}) 
+            return JsonResponse({'contact_nums': contact_nums, 'f_names': f_names, 'l_names': l_names}) 
         
         except Exception as e:
             print(f"Error processing file: {e}") 

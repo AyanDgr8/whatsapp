@@ -20,7 +20,7 @@
 
     <div class="container">
         <div class="header">
-            MultyMessenger
+            multyMessenger
         </div>
         
         <!-- Message Form -->
@@ -38,7 +38,7 @@
     
     <!-- Display messages -->
     {% if messages %}
-        <ul class="messages" style="list-style: none; padding: 0; margin: auto; text-align: center; height:10vh; overflow-y:auto; width:80%; border-radius:10px;">
+        <ul class="messages" style="list-style: none; padding: 0; margin: auto; text-align: center; height:10vh; overflow-y:auto; width:75%; border-radius:10px;">
             {% for message in messages %}
                 <li class="{% if message.tags %}{{ message.tags }}{% endif %}" 
                     style="
