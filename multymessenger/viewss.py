@@ -46,6 +46,16 @@ def send_whatsapp_message(contact_nums, message):
     chrome_options.add_argument("--disable-infobars")  # Disable the 'Chrome is being controlled' infobar
     chrome_options.add_argument("--disable-extensions")  # Disable extensions
     chrome_options.add_argument("--headless")  # Optionally run in headless mode (without GUI)
+    options = Options()
+    options.binary_location = chrome_path
+    options.add_argument("--no-sandbox") #Bypass OS security model, MUST BE THE VERY FIRST OPTION
+    options.add_argument("--headless")
+    options.add_experimental_option("useAutomationExtension", False)
+    options.add_argument("start-maximized");  #open Browser in maximized mode
+    options.add_argument("disable-infobars"); # disabling infobars
+    options.add_argument("--disable-extensions"); # disabling extensions
+    options.add_argument("--disable-gpu"); #applicable to windows os only
+    options.add_argument("--disable-dev-shm-usage"); # overcome limited resource problems
 
     # Initialize the driver with ChromeDriverManager
     service = Service(ChromeDriverManager().install())  # Automatically manage ChromeDriver
